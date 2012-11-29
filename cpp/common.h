@@ -28,6 +28,7 @@ public:
   void write_image(const std::string&);
   
   img_struct* convolution(const float*) const;
+  void pixel_matrix_3(size_t row, size_t col, const float**) const;
 
   float* data; //todo change to unique_ptr
   size_t width;
@@ -167,5 +168,25 @@ img_struct* img_struct::convolution(const float* m) const {
   }
   return dst;
 };
+
+void img_struct::pixel_matrix_3(size_t row, size_t col, const float** matrix) const {
+  //pixels above center picture
+  const size_t depth=this->depth();
+  const size_t max=this->width*this->height*depth;
+  size_t idx=0;
+  const long lr = (long)row;
+  const long lc = (long)col;
+  for(int dr=-1; dr<=-1; dr++) {
+    for(int dc=-1; dc<=-1; dc++) {
+      long index = (lr+dr)*this->width*depth + (lc+dr)*depth;
+      if(index<0 || index>max) {
+        matrix[idx++] = NULL;
+      }
+      else {
+        matrix[idx++] = &(this->data[index]);
+      }
+    }
+  }
+}
 
 #endif
