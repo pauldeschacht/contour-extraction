@@ -1,0 +1,3 @@
+smooth
+* normalize the YUV,XYZ, CIE colorspaces 
+* generalize the pixel_matrix function
