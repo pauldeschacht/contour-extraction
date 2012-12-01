@@ -59,6 +59,7 @@ img_struct* rgb_to_xyz(const img_struct* s) {
 }
 
 img_struct* rgb_to_hsv(const img_struct* img) {
+  /*
   double r,g,b, delta_r,delta_g,delta_b;
   double h,s,v;
   double min,max,delta;
@@ -107,7 +108,51 @@ img_struct* rgb_to_hsv(const img_struct* img) {
       d->data[i+2] = (float)v;
     }
   }
+  */
+  double r,g,b;
+  double min,max,delta;
+  double h,s,v;
+  img_struct* d = new img_struct(img->width, img->height, img_struct::HSV);
+  size_t size = d->width * d->height * 3;
+  for(size_t i=0; i<size; i+=3) {
+
+    r = double(img->data[i+0]) / 255.0;
+    g = double(img->data[i+1]) / 255.0;
+    b = double(img->data[i+2]) / 255.0;
+    
+    min = std::min<double>( r, std::min<double>(g,b));
+    max = std::max<double>( r, std::max<double>(g,b));
+    delta = max - min;
+
+    v = max;				// v
+    if( max == 0 ) {
+      // r = g = b = 0		// s = 0, v is undefined
+      s = 0;
+      h = -1;
+    }
+    else {
+      s = delta / max;		// s
+
+      if( r == max )
+        h = ( g - b ) / delta;		// between yellow & magenta
+      else if( g == max )
+        h = 2 + ( b - r ) / delta;	// between cyan & yellow
+      else
+        h = 4 + ( r - g ) / delta;	// between magenta & cyan
+      h *= 60;				// degrees
+      if( h < 0 )
+        h += 360;
+      
+      v = max;
+    }
+    h = h / 360;//normalize
+    d->data[i+0] = (float)h;
+    d->data[i+1] = (float)s;
+    d->data[i+2] = (float)v;
+  }
+
   return d;
+
 }
 //
 // YUV
@@ -245,7 +290,7 @@ img_struct* lab_to_xyz(const img_struct* s) {
 // HSV
 //
 img_struct* hsv_to_rgb(const img_struct* img) {
-  
+  /*  
   double h,s,v;
   double r,g,b;
   double vh,vi,v1,v2,v3;
@@ -309,6 +354,71 @@ img_struct* hsv_to_rgb(const img_struct* img) {
       d->data[i+2] = float(b * 255.0);
     }
   }
+  */
+
+
+  double r,g,b;
+
+  img_struct* d = new img_struct(img->width, img->height, img_struct::RGB);
+
+  size_t size = img->width * img->height * 3;
+  for(size_t i=0; i<size; i+=3) {
+    double h = double(img->data[i+0]);
+    double s = double(img->data[i+1]);
+    double v = double(img->data[i+2]);
+
+    h = h * 360;
+    
+    if (s==0) {
+      r = v;
+      g = v;
+      b = v;
+    }
+    else {
+      h = h/60.0;
+      int i = (int)floor(h);
+      double f = h - i;			// factorial part of h
+      double p = v * ( 1 - s );
+      double q = v * ( 1 - s * f );
+      double t = v * ( 1 - s * ( 1 - f ) );
+      switch( i ) {
+      case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+      default:		// case 5:
+        r = v;
+        g = p;
+        b = q;
+        break;
+      }
+    }
+    d->data[i+0] = float(r * 255.0);
+    d->data[i+1] = float(g * 255.0);
+    d->data[i+2] = float(b * 255.0);
+  }
+
   return d;
 };
 //
