@@ -31,11 +31,10 @@ img_struct* image_to_rgb(const std::string& jpg) {
   for (long y=0; y < (long)MagickGetImageHeight(image_wand); y++) {
     pixels=PixelGetNextIteratorRow(iterator,&width);
     for (long x=0; x < (long)MagickGetImageWidth(image_wand); x++) {
-      PixelGetMagickColor(pixels[x],&pixel);
-        rgb->data[index++] = (float)pixel.red;
-        rgb->data[index++] = (float)pixel.green;
-        rgb->data[index++] = (float)pixel.blue;
-      }
+      rgb->data[index++] = (float)PixelGetRed(pixels[x]) * 255;
+      rgb->data[index++] = (float)PixelGetGreen(pixels[x]) * 255;
+      rgb->data[index++] = (float)PixelGetBlue(pixels[x]) * 255;
+    }
   }
   DestroyPixelIterator(iterator);
   DestroyMagickWand(image_wand);
@@ -50,7 +49,17 @@ bool rgb_to_image(const img_struct* rgb, const std::string& filename) {
   size_t size = rgb->width * rgb->height * 3;
   unsigned char* temp = new unsigned char[size]; //input is float RGB, hence depth is 3
   for(size_t i=0; i<size; i++) {
-    temp[i] = (unsigned char)rgb->data[i];
+    if(rgb->data[i] > 255) {
+      std::cerr << "too large" << std::endl;
+      temp[i]=255;
+    }
+    else if (rgb->data[i]<0) {
+      std::cerr << "negative" << std::endl;
+      temp[i]=0;
+    }
+    else {
+      temp[i] = (unsigned char)rgb->data[i];
+    }
   }
   MagickWandGenesis();
   MagickWand* image_wand = NewMagickWand();
