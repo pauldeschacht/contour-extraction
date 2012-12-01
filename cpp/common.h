@@ -29,7 +29,7 @@ public:
   
   img_struct* convolution(const float*) const;
   void pixel_matrix_3(size_t row, size_t col, const float**) const;
-
+  void pixel_matrix_5(size_t row, size_t col, const float**) const;
   float* data; //todo change to unique_ptr
   size_t width;
   size_t height;
@@ -176,9 +176,9 @@ void img_struct::pixel_matrix_3(size_t row, size_t col, const float** matrix) co
   size_t idx=0;
   const long lr = (long)row;
   const long lc = (long)col;
-  for(int dr=-1; dr<=-1; dr++) {
-    for(int dc=-1; dc<=-1; dc++) {
-      long index = (lr+dr)*this->width*depth + (lc+dr)*depth;
+  for(int dr=-1; dr<=1; dr++) {
+    for(int dc=-1; dc<=1; dc++) {
+      long index = (lr+dr)*this->width*depth + (lc+dc)*depth;
       if(index<0 || index>max) {
         matrix[idx++] = NULL;
       }
@@ -189,4 +189,23 @@ void img_struct::pixel_matrix_3(size_t row, size_t col, const float** matrix) co
   }
 }
 
+void img_struct::pixel_matrix_5(size_t row, size_t col, const float** matrix) const {
+  //pixels above center picture
+  const size_t depth=this->depth();
+  const size_t max=this->width*this->height*depth;
+  size_t idx=0;
+  const long lr = (long)row;
+  const long lc = (long)col;
+  for(int dr=-2; dr<=2; dr++) {
+    for(int dc=-2; dc<=2; dc++) {
+      long index = (lr+dr)*this->width*depth + (lc+dc)*depth;
+      if(index<0 || index>max) {
+        matrix[idx++] = NULL;
+      }
+      else {
+        matrix[idx++] = &(this->data[index]);
+      }
+    }
+  }
+}
 #endif
